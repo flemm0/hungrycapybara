@@ -46,6 +46,7 @@ private class Restaurants(tag: Tag) extends Table[Restaurant](tag, "restaurants"
 object LocalDatabase:
   private val customersDb = TableQuery[Customers]
   private val restaurantsDb = TableQuery[Restaurants]
+  private val randomSql = SimpleFunction.nullary[Double]("random")
 
   def resource: Resource[IO, Database] =
     Resource.fromAutoCloseable {
@@ -72,72 +73,18 @@ object LocalDatabase:
     if rows.isEmpty then DBIO.successful(())
     else DBIO.seq(table ++= rows)
 
-  def getCustomerById(database: Database, customerId: String): IO[Option[Customer]] =
-    val query =
-      customersDb
-        .filter(_.customerId === customerId)
-        .result
-        .headOption
-    IO.fromFuture(IO(database.run(query)))
+  def runAction[A](database: Database, action: DBIO[A]): IO[A] =
+    IO.fromFuture(IO(database.run(action)))
 
-  def randomCustomer(database: Database): IO[Option[Customer]] =
-    val query =
-      customersDb
-        .sortBy(_ => SimpleFunction.nullary[Long]("random"))
-        .take(1)
-        .result
-        .headOption
-    IO.fromFuture(IO(database.run(query)))  
-  
-  def updateCustomer(database: Database, customer: Customer): IO[Unit] =
-    val query =
-      customersDb
-        .filter(_.customerId === customer.customerId)
-        .update(customer)
-    IO.fromFuture(IO(database.run(query))).void
+  def runTransaction[A](database: Database, action: DBIO[A]): IO[A] =
+    IO.fromFuture(IO(database.run(action.transactionally)))
 
-  def deleteCustomer(database: Database, customerId: String): IO[Unit] =
-    val query =
-      customersDb
-        .filter(_.customerId === customerId)
-        .delete
-    IO.fromFuture(IO(database.run(query))).void
+  def randomCustomerAction: DBIO[Option[Customer]] =
+    customersDb
+      .sortBy(_ => randomSql)
+      .take(1)
+      .result
+      .headOption
 
-  def insertCustomer(database: Database, customer: Customer): IO[Unit] =
-    val query = customersDb += customer
-    IO.fromFuture(IO(database.run(query))).void
-
-  def getRestaurantById(database: Database, restaurantId: String): IO[Option[Restaurant]] =
-    val query =
-      restaurantsDb
-        .filter(_.restaurantId === restaurantId)
-        .result
-        .headOption
-    IO.fromFuture(IO(database.run(query)))
-
-  def randomRestaurant(database: Database): IO[Option[Restaurant]] =
-    val query =
-      restaurantsDb
-        .sortBy(_ => SimpleFunction.nullary[Long]("random"))
-        .take(1)
-        .result
-        .headOption
-    IO.fromFuture(IO(database.run(query)))
-
-  def updateRestaurant(database: Database, restaurant: Restaurant): IO[Unit] =
-    val query =
-      restaurantsDb
-        .filter(_.restaurantId === restaurant.restaurantId)
-        .update(restaurant)
-    IO.fromFuture(IO(database.run(query))).void
-
-  def deleteRestaurant(database: Database, restaurantId: String): IO[Unit] =
-    val query =
-      restaurantsDb
-        .filter(_.restaurantId === restaurantId)
-        .delete
-    IO.fromFuture(IO(database.run(query))).void
-
-  def insertRestaurant(database: Database, restaurant: Restaurant): IO[Unit] =
-    val query = restaurantsDb += restaurant
-    IO.fromFuture(IO(database.run(query))).void
+  def insertCustomerAction(customer: Customer): DBIO[Int] =
+    customersDb += customer
