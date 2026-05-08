@@ -1,0 +1,28 @@
+en:
+  faker:
+    cuisines:
+      names:
+        - "American"
+        - "Italian"
+        - "Chinese"
+        - "Mexican"
+        - "Indian"
+        - "Japanese"
+        - "French"
+        - "Thai"
+        - "Greek"
+        - "Vietnamese"
+        - "Korean"
+        - "Spanish"
+        - "Peruvian"
+        - "Middle Eastern"
+        - "Caribbean"
+        - "Nigerian"
+        - "Ethiopian"
+        - "Brazilian"
+        - "German"
+        - "Russian"
+        - "Nepalese"
+        - "Indonesian"
+        - "Moroccan"
+        - "Turkish"
