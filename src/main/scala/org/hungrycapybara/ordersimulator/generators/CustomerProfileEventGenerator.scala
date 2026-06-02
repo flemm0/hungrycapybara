@@ -1,4 +1,4 @@
-package org.hungrycapybara.ordersimulator
+package org.hungrycapybara.ordersimulator.generators
 
 import java.time.Instant
 import java.util.UUID
@@ -6,11 +6,12 @@ import java.util.UUID
 import scala.concurrent.duration.*
 import scala.util.Random
 import cats.effect.IO
+import org.hungrycapybara.ordersimulator.EventGenerator
 import org.hungrycapybara.ordersimulator.helper.SeedData
 import org.hungrycapybara.ordersimulator.model.CustomerProfileEvent
 import org.hungrycapybara.ordersimulator.model.CustomerProfileEventType.*
 
-object CustomerProfileEvents extends EventGenerator:
+object CustomerProfileEventGenerator extends EventGenerator:
   type Event = CustomerProfileEvent
 
   override protected val name: String = "customer-profile"
