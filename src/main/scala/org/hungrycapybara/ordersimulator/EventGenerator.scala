@@ -17,7 +17,7 @@ trait EventGenerator:
   type Event
 
   protected def name: String
-  protected def eventInterval: FiniteDuration
+  protected def eventInterval: IO[FiniteDuration]
 
   protected def generateEvent(using EventGenerator.Context): IO[Event]
 
@@ -48,7 +48,7 @@ trait EventGenerator:
     generateEvent.flatTap(publishEvent)
 
   final protected def runContinuously(using EventGenerator.Context): IO[Unit] =
-    (emitOne.void *> IO.sleep(eventInterval)).foreverM
+    (emitOne.void *> eventInterval.flatMap(IO.sleep)).foreverM
 
   protected def logStarted: IO[Unit] =
     IO.println(s"[$name] event generator started")

@@ -14,7 +14,8 @@ object CustomerProfileEvents extends EventGenerator:
   type Event = CustomerProfileEvent
 
   override protected val name: String = "customer-profile"
-  override protected val eventInterval: FiniteDuration = 1.second
+  override protected def eventInterval: IO[FiniteDuration] =
+    IO.delay(Random.between(1, 11).seconds)
 
   /**
     * A simple method to generate a random customer profile event with the set schema.
