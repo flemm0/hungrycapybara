@@ -5,6 +5,7 @@ import java.time.Instant
 enum CustomerProfileEventType:
   case CustomerCreated
   case CustomerUpdated
+  case CustomerDeleted
 
 enum CustomerLoyaltyTier:
   case Bronze, Silver, Gold, Platinum
@@ -16,6 +17,7 @@ case class Customer(
   favoriteCuisines: List[String],
   loyaltyTier: CustomerLoyaltyTier,
   averageOrderValue: Double,
+  isActive: Boolean
 )
 
 case class CustomerProfileEvent(

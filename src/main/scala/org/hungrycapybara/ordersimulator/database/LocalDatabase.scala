@@ -31,8 +31,9 @@ private class Customers(tag: Tag) extends Table[Customer](tag, "customers"):
   def favoriteCuisines = column[List[String]]("favorite_cuisines")
   def loyaltyTier = column[CustomerLoyaltyTier]("loyalty_tier")
   def averageOrderValue = column[Double]("average_order_value")
+  def isActive = column[Boolean]("is_active")
 
-  def * = (customerId, signupDate, homeCity, favoriteCuisines, loyaltyTier, averageOrderValue).mapTo[Customer]
+  def * = (customerId, signupDate, homeCity, favoriteCuisines, loyaltyTier, averageOrderValue, isActive).mapTo[Customer]
 
 private class Restaurants(tag: Tag) extends Table[Restaurant](tag, "restaurants"):
   def restaurantId = column[String]("restaurant_id", O.PrimaryKey)

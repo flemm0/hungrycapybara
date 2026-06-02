@@ -28,7 +28,7 @@ object SeedData:
     ).head
     val averageOrderValue = Random.nextDouble() * 100
 
-    Customer(customerId, signupDate, homeCity, favoriteCuisines, loyaltyTier, averageOrderValue)
+    Customer(customerId, signupDate, homeCity, favoriteCuisines, loyaltyTier, averageOrderValue, isActive = true)
 
   def randomRestaurant(): Restaurant =
     val restaurantId = UUID.randomUUID().toString
