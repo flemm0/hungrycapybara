@@ -73,10 +73,10 @@ object LocalDatabase:
     if rows.isEmpty then DBIO.successful(())
     else DBIO.seq(table ++= rows)
 
-  def runAction[A](database: Database, action: DBIO[A]): IO[A] =
+  def runAction[A](action: DBIO[A])(using database: Database): IO[A] =
     IO.fromFuture(IO(database.run(action)))
 
-  def runTransaction[A](database: Database, action: DBIO[A]): IO[A] =
+  def runTransaction[A](action: DBIO[A])(using database: Database): IO[A] =
     IO.fromFuture(IO(database.run(action.transactionally)))
 
   def randomCustomerAction: DBIO[Option[Customer]] =
