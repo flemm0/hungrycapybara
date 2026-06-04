@@ -4,9 +4,14 @@ import cats.effect.{IO, IOApp}
 import cats.syntax.all.*
 import org.hungrycapybara.ordersimulator.model.ExecutionEnvironment
 import org.hungrycapybara.ordersimulator.database.LocalDatabase
-import org.hungrycapybara.ordersimulator.generators.CustomerProfileEventGenerator
-import org.hungrycapybara.ordersimulator.generators.RestaurantBrowseEventGenerator
-import org.hungrycapybara.ordersimulator.helper.SeedData
+import org.hungrycapybara.ordersimulator.generators.{
+  CustomerProfileEventGenerator,
+  RestaurantCatalogEventGenerator,
+  CustomerSessionEventGenerator,
+  RestaurantBrowseEventGenerator,
+  MenuInteractionEventGenerator,
+  CartEventGenerator
+}
 
 object App extends IOApp.Simple:
   // TODO: remove the local declaration once done with testing
@@ -14,12 +19,11 @@ object App extends IOApp.Simple:
 
   private val eventGenerators: List[EventGenerator] = List(
     CustomerProfileEventGenerator,
+    RestaurantCatalogEventGenerator,
+    CustomerSessionEventGenerator,
     RestaurantBrowseEventGenerator,
-    // RestaurantCatalogEvents,
-    // OrderEvents,
-    // CartEvents,
-    // OfferEvents,
-    // NotificationEvents
+    MenuInteractionEventGenerator,
+    CartEventGenerator
   )
 
   def run: IO[Unit] =
