@@ -5,6 +5,7 @@ import cats.syntax.all.*
 import org.hungrycapybara.ordersimulator.model.ExecutionEnvironment
 import org.hungrycapybara.ordersimulator.database.LocalDatabase
 import org.hungrycapybara.ordersimulator.generators.CustomerProfileEventGenerator
+import org.hungrycapybara.ordersimulator.generators.RestaurantBrowseEventGenerator
 import org.hungrycapybara.ordersimulator.helper.SeedData
 
 object App extends IOApp.Simple:
@@ -13,6 +14,7 @@ object App extends IOApp.Simple:
 
   private val eventGenerators: List[EventGenerator] = List(
     CustomerProfileEventGenerator,
+    RestaurantBrowseEventGenerator,
     // RestaurantCatalogEvents,
     // OrderEvents,
     // CartEvents,
