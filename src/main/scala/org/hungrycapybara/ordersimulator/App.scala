@@ -10,7 +10,9 @@ import org.hungrycapybara.ordersimulator.generators.{
   CustomerSessionEventGenerator,
   RestaurantBrowseEventGenerator,
   MenuInteractionEventGenerator,
-  CartEventGenerator
+  CartEventGenerator,
+  PromotionEventGenerator,
+  OrderEventGenerator
 }
 
 object App extends IOApp.Simple:
@@ -23,7 +25,9 @@ object App extends IOApp.Simple:
     CustomerSessionEventGenerator,
     RestaurantBrowseEventGenerator,
     MenuInteractionEventGenerator,
-    CartEventGenerator
+    CartEventGenerator,
+    PromotionEventGenerator,
+    OrderEventGenerator
   )
 
   def run: IO[Unit] =
