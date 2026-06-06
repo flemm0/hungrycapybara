@@ -2,6 +2,7 @@ package org.hungrycapybara.ordersimulator
 
 import cats.effect.{IO, IOApp, ExitCode}
 import cats.syntax.all.*
+import org.hungrycapybara.ordersimulator.config.AppConfig
 import org.hungrycapybara.ordersimulator.config.ConfigLoader
 import org.hungrycapybara.ordersimulator.generators.{
   CustomerProfileEventGenerator,
@@ -13,6 +14,8 @@ import org.hungrycapybara.ordersimulator.generators.{
   PromotionEventGenerator,
   OrderEventGenerator
 }
+import org.hungrycapybara.ordersimulator.model.ExecutionEnvironment
+import org.hungrycapybara.ordersimulator.publisher.{ConsoleEventPublisher, KafkaEventPublisher}
 
 object App extends IOApp:
   private val eventGenerators: List[EventGenerator] = List(
@@ -26,6 +29,13 @@ object App extends IOApp:
     OrderEventGenerator
   )
 
+  private def selectPublisher(config: AppConfig): EventPublisher =
+    config.environment match
+      case ExecutionEnvironment.Local =>
+        ConsoleEventPublisher
+      case ExecutionEnvironment.Staging | ExecutionEnvironment.Production =>
+        KafkaEventPublisher
+
   override def run(args: List[String]): IO[ExitCode] =
     // LocalDatabase.resource.use { database =>
     //   val customers = SeedData.customers(100)
@@ -37,6 +47,7 @@ object App extends IOApp:
     //     eventGenerators.parTraverse_(_.run(executionEnv, database))
     // }
     ConfigLoader.load(args).flatMap { config =>
+      val publisher = selectPublisher(config)
       IO.println(s"Starting event generation in ${config.environment}...") *>
-        eventGenerators.parTraverse_(_.run(config.environment))
+        eventGenerators.parTraverse_(_.run(config.environment, publisher))
     }.as(ExitCode.Success)
