@@ -13,6 +13,7 @@ lazy val root = project
       slick,
       catsEffect,
       datafaker,
+      snakeYaml,
       munit % Test
     )
   )

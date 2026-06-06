@@ -7,9 +7,11 @@ object Dependencies {
   lazy val catsEffectVersion = "3.7.0"
   lazy val munitVersion = "1.3.0"
   lazy val datafakerVersion = "2.5.4"
+  lazy val snakeYamlVersion = "2.2"
 
   val slick = "com.typesafe.slick" %% "slick" % slickVersion
   val catsEffect = "org.typelevel" %% "cats-effect" % catsEffectVersion
   val munit = "org.scalameta" %% "munit" % munitVersion
   val datafaker = "net.datafaker" % "datafaker" % datafakerVersion
+  val snakeYaml = "org.yaml" % "snakeyaml" % snakeYamlVersion
 }

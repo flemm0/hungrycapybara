@@ -1,0 +1,6 @@
+environment: staging
+
+kafka:
+  bootstrapServers: localhost:9092
+  clientId: hungry-capybara-order-simulator
+  topicPrefix: hungry-capybara

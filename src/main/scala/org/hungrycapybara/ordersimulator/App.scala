@@ -1,9 +1,8 @@
 package org.hungrycapybara.ordersimulator
 
-import cats.effect.{IO, IOApp}
+import cats.effect.{IO, IOApp, ExitCode}
 import cats.syntax.all.*
-import org.hungrycapybara.ordersimulator.model.ExecutionEnvironment
-import org.hungrycapybara.ordersimulator.database.LocalDatabase
+import org.hungrycapybara.ordersimulator.config.ConfigLoader
 import org.hungrycapybara.ordersimulator.generators.{
   CustomerProfileEventGenerator,
   RestaurantCatalogEventGenerator,
@@ -15,10 +14,7 @@ import org.hungrycapybara.ordersimulator.generators.{
   OrderEventGenerator
 }
 
-object App extends IOApp.Simple:
-  // TODO: remove the local declaration once done with testing
-  private val executionEnv = ExecutionEnvironment.Local
-
+object App extends IOApp:
   private val eventGenerators: List[EventGenerator] = List(
     CustomerProfileEventGenerator,
     RestaurantCatalogEventGenerator,
@@ -30,7 +26,7 @@ object App extends IOApp.Simple:
     OrderEventGenerator
   )
 
-  def run: IO[Unit] =
+  override def run(args: List[String]): IO[ExitCode] =
     // LocalDatabase.resource.use { database =>
     //   val customers = SeedData.customers(100)
     //   val restaurants = SeedData.restaurants(25)
@@ -40,5 +36,7 @@ object App extends IOApp.Simple:
     //     IO.println("Starting event generation...") *>
     //     eventGenerators.parTraverse_(_.run(executionEnv, database))
     // }
-    IO.println("Starting event generation...") *>
-      eventGenerators.parTraverse_(_.run(executionEnv))
+    ConfigLoader.load(args).flatMap { config =>
+      IO.println(s"Starting event generation in ${config.environment}...") *>
+        eventGenerators.parTraverse_(_.run(config.environment))
+    }.as(ExitCode.Success)
