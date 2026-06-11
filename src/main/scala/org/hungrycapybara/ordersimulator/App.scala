@@ -30,12 +30,20 @@ object App extends IOApp:
     OrderEventGenerator
   )
 
-  private def selectPublisher(config: AppConfig): EventPublisher =
+  private def selectPublisher(config: AppConfig): IO[EventPublisher] =
     config.environment match
       case ExecutionEnvironment.Local =>
-        ConsoleEventPublisher
+        IO.pure(ConsoleEventPublisher)
       case ExecutionEnvironment.Staging | ExecutionEnvironment.Production =>
-        KafkaEventPublisher
+        config.kafka match
+          case Some(kafkaConfig) =>
+            IO.pure(KafkaEventPublisher(kafkaConfig))
+          case None =>
+            IO.raiseError(
+              IllegalStateException(
+                s"Kafka config is required when environment is ${config.environment}"
+              )
+            )
 
   override def run(args: List[String]): IO[ExitCode] =
     // LocalDatabase.resource.use { database =>
@@ -48,7 +56,8 @@ object App extends IOApp:
     //     eventGenerators.parTraverse_(_.run(executionEnv, database))
     // }
     ConfigLoader.load(args).flatMap { config =>
-      val publisher = selectPublisher(config)
-      IO.println(s"Starting event generation in ${config.environment}...") *>
-        eventGenerators.parTraverse_(_.run(config.environment, publisher))
+      selectPublisher(config).flatMap { publisher =>
+        IO.println(s"Starting event generation in ${config.environment}...") *>
+          eventGenerators.parTraverse_(_.run(config.environment, publisher))
+      }
     }.as(ExitCode.Success)

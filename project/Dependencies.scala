@@ -9,6 +9,7 @@ object Dependencies {
   lazy val datafakerVersion = "2.5.4"
   lazy val snakeYamlVersion = "2.2"
   lazy val circeVersion = "0.14.15"
+  lazy val kafkaClientsVersion = "3.8.1"
 
   val slick = "com.typesafe.slick" %% "slick" % slickVersion
   val catsEffect = "org.typelevel" %% "cats-effect" % catsEffectVersion
@@ -17,4 +18,5 @@ object Dependencies {
   val snakeYaml = "org.yaml" % "snakeyaml" % snakeYamlVersion
   val circeCore = "io.circe" %% "circe-core" % circeVersion
   val circeParser = "io.circe" %% "circe-parser" % circeVersion
+  val kafkaClients = "org.apache.kafka" % "kafka-clients" % kafkaClientsVersion
 }

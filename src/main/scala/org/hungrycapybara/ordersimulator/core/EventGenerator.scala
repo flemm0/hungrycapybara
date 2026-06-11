@@ -36,11 +36,7 @@ trait EventGenerator:
     summon[EventGenerator.Context].publisher.publish(streamName, eventKey(event), event)
 
   protected def runForEnvironment(using context: EventGenerator.Context): IO[Unit] =
-    context.executionEnv match
-      case ExecutionEnvironment.Local =>
-        runContinuously
-      case unsupported =>
-        IO.println(s"[$name] event generator is not implemented for $unsupported")
+    runContinuously
 
   final def run(executionEnv: ExecutionEnvironment, publisher: EventPublisher): IO[Unit] =
     given EventGenerator.Context = EventGenerator.Context(executionEnv, publisher)

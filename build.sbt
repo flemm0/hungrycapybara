@@ -16,6 +16,7 @@ lazy val root = project
       snakeYaml,
       circeCore,
       circeParser,
+      kafkaClients,
       munit % Test
     )
   )
