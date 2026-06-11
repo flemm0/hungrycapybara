@@ -14,6 +14,8 @@ lazy val root = project
       catsEffect,
       datafaker,
       snakeYaml,
+      circeCore,
+      circeParser,
       munit % Test
     )
   )

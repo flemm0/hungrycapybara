@@ -16,6 +16,6 @@ case class RestaurantBrowseEvent(
   customerId: String,
   restaurantId: Option[String],
   searchQuery: Option[String],
-  feedRank: Integer,
-  deliveryEtaMinutes: Integer
+  feedRank: Int,
+  deliveryEtaMinutes: Int
 )

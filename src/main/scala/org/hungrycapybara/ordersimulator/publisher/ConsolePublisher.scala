@@ -3,60 +3,50 @@ package org.hungrycapybara.ordersimulator.publisher
 import org.hungrycapybara.ordersimulator.core.EventPublisher
 import cats.effect.IO
 import java.time.Instant
+import io.circe.{Json, JsonObject}
 
 object ConsoleEventPublisher extends EventPublisher:
   override def publish[A](streamName: String, key: String, event: A): IO[Unit] =
-    IO.println(
-      s"{" +
-        s"\"timestamp\":${JsonValueEncoder.encode(Instant.now().toString)}," +
-        s"\"streamName\":${JsonValueEncoder.encode(streamName)}," +
-        s"\"key\":${JsonValueEncoder.encode(key)}," +
-        s"\"eventClass\":${JsonValueEncoder.encode(event.getClass.getSimpleName)}," +
-        s"\"event\":${JsonValueEncoder.encode(event)}" +
-        s"}"
+    val payload = Json.fromJsonObject(
+      JsonObject(
+        "timestamp" -> Json.fromString(Instant.now().toString),
+        "streamName" -> Json.fromString(streamName),
+        "key" -> Json.fromString(key),
+        "eventClass" -> Json.fromString(event.getClass.getSimpleName),
+        "event" -> JsonValueEncoder.encode(event)
+      )
     )
+    IO.println(payload.noSpaces)
 
 private object JsonValueEncoder:
-  def encode(value: Any): String =
+  // Policy: non-finite floating point values are encoded as JSON null.
+  def encode(value: Any): Json =
     value match
-      case null          => "null"
-      case text: String  => quote(text)
-      case text: Char    => quote(text.toString)
-      case flag: Boolean => flag.toString
-      case number: Byte  => number.toString
-      case number: Short => number.toString
-      case number: Int   => number.toString
-      case number: Long  => number.toString
-      case number: Float =>
-        if number.isInfinite || number.isNaN then quote(number.toString) else number.toString
-      case number: Double =>
-        if number.isInfinite || number.isNaN then quote(number.toString) else number.toString
-      case number: BigInt     => number.toString
-      case number: BigDecimal => number.toString
-      case instant: Instant   => quote(instant.toString)
-      case option: Option[?]  => option.map(encode).getOrElse("null")
+      case null          => Json.Null
+      case text: String  => Json.fromString(text)
+      case text: Char    => Json.fromString(text.toString)
+      case flag: Boolean => Json.fromBoolean(flag)
+      case number: Byte  => Json.fromInt(number.toInt)
+      case number: Short => Json.fromInt(number.toInt)
+      case number: Int   => Json.fromInt(number)
+      case number: Long  => Json.fromLong(number)
+      case number: Float => Json.fromFloatOrNull(number)
+      case number: Double => Json.fromDoubleOrNull(number)
+      case number: BigInt     => Json.fromBigInt(number)
+      case number: BigDecimal => Json.fromBigDecimal(number)
+      case instant: Instant   => Json.fromString(instant.toString)
+      case enumValue: Enum[?] => Json.fromString(enumValue.name)
+      case option: Option[?]  => option.map(encode).getOrElse(Json.Null)
       case values: Iterable[?] =>
-        values.iterator.map(encode).mkString("[", ",", "]")
+        Json.arr(values.iterator.map(encode).toSeq*)
       case values: Array[?] =>
-        values.iterator.map(encode).mkString("[", ",", "]")
+        Json.arr(values.iterator.map(encode).toSeq*)
       case product: Product =>
-        product.productElementNames
+        Json.obj(
+          product.productElementNames
           .zip(product.productIterator)
-          .map { case (name, fieldValue) => s"${quote(name)}:${encode(fieldValue)}" }
-          .mkString("{", ",", "}")
+          .map { case (name, fieldValue) => name -> encode(fieldValue) }
+          .toSeq*
+        )
       case other =>
-        quote(other.toString)
-
-  private def quote(value: String): String =
-    val escaped = value.flatMap {
-      case '"'  => "\\\""
-      case '\\' => "\\\\"
-      case '\b' => "\\b"
-      case '\f' => "\\f"
-      case '\n' => "\\n"
-      case '\r' => "\\r"
-      case '\t' => "\\t"
-      case ch if Character.isISOControl(ch) => f"\\u${ch.toInt}%04x"
-      case ch => ch.toString
-    }
-    s"\"$escaped\""
+        Json.fromString(other.toString)
