@@ -1,7 +1,7 @@
 package org.hungrycapybara.ordersimulator.generators
 
 import cats.effect.IO
-import org.hungrycapybara.ordersimulator.EventGenerator
+import org.hungrycapybara.ordersimulator.core.EventGenerator
 import org.hungrycapybara.ordersimulator.model.{CartEvent, CartItem}
 import org.hungrycapybara.ordersimulator.model.CartEventType.*
 

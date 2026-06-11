@@ -1,4 +1,4 @@
-package org.hungrycapybara.ordersimulator
+package org.hungrycapybara.ordersimulator.core
 
 import cats.effect.{IO, Outcome}
 import cats.syntax.all.*

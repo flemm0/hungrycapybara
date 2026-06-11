@@ -1,6 +1,6 @@
 package org.hungrycapybara.ordersimulator.publisher
 
-import org.hungrycapybara.ordersimulator.EventPublisher
+import org.hungrycapybara.ordersimulator.core.EventPublisher
 import cats.effect.IO
 
 object KafkaEventPublisher extends EventPublisher:

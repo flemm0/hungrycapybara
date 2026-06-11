@@ -2,6 +2,7 @@ package org.hungrycapybara.ordersimulator
 
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
+import org.hungrycapybara.ordersimulator.core.{EventGenerator, EventPublisher}
 import org.hungrycapybara.ordersimulator.model.ExecutionEnvironment
 
 import scala.concurrent.duration.*

@@ -4,6 +4,7 @@ import cats.effect.{IO, IOApp, ExitCode}
 import cats.syntax.all.*
 import org.hungrycapybara.ordersimulator.config.AppConfig
 import org.hungrycapybara.ordersimulator.config.ConfigLoader
+import org.hungrycapybara.ordersimulator.core.{EventGenerator, EventPublisher}
 import org.hungrycapybara.ordersimulator.generators.{
   CustomerProfileEventGenerator,
   RestaurantCatalogEventGenerator,

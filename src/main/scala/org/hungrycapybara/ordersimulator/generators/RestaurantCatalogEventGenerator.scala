@@ -1,6 +1,6 @@
 package org.hungrycapybara.ordersimulator.generators
 
-import org.hungrycapybara.ordersimulator.EventGenerator
+import org.hungrycapybara.ordersimulator.core.EventGenerator
 import org.hungrycapybara.ordersimulator.model.{RestaurantCatalogEvent, MenuItem}
 import org.hungrycapybara.ordersimulator.model.RestaurantCatalogEventType.*
 import org.hungrycapybara.ordersimulator.helper.SeedData

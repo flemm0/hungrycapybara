@@ -6,7 +6,7 @@ import java.util.UUID
 import scala.concurrent.duration.*
 import scala.util.Random
 import cats.effect.IO
-import org.hungrycapybara.ordersimulator.EventGenerator
+import org.hungrycapybara.ordersimulator.core.EventGenerator
 import org.hungrycapybara.ordersimulator.helper.SeedData
 import org.hungrycapybara.ordersimulator.model.CustomerProfileEvent
 import org.hungrycapybara.ordersimulator.model.CustomerProfileEventType.*
