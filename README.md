@@ -23,6 +23,28 @@ sbt "run --config app.yaml.example"
 
 CLI args override YAML values when both are provided.
 
+### Build A Runnable Fat Jar
+
+To build a single runnable jar with all dependencies included:
+
+```bash
+sbt assembly
+```
+
+The jar will be created at:
+
+```bash
+target/scala-3.8.3/HungyCapybara-assembly-0.1.0-SNAPSHOT.jar
+```
+
+Run it with CLI args the same way as `sbt run`:
+
+```bash
+java -jar target/scala-3.8.3/HungyCapybara-assembly-0.1.0-SNAPSHOT.jar --env local
+java -jar target/scala-3.8.3/HungyCapybara-assembly-0.1.0-SNAPSHOT.jar --config app.yaml.example
+java -jar target/scala-3.8.3/HungyCapybara-assembly-0.1.0-SNAPSHOT.jar --env staging --kafka-bootstrap-servers localhost:9092 --kafka-client-id hungry-capybara-order-simulator --kafka-topic-prefix hungry-capybara
+```
+
 ---
 
 This is a normal sbt project. You can compile code with `sbt compile`, run it with `sbt run`, and `sbt console` will start a Scala 3 REPL.
