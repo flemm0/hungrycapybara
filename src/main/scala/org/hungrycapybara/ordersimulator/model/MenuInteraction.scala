@@ -8,12 +8,12 @@ enum MenuInteractionEventType:
   case ItemFavorited
 
 case class MenuInteractionEvent(
-  eventId: String,
-  eventType: MenuInteractionEventType,
-  eventTs: Instant,
-  sessionId: String,
-  customerId: String,
-  restaurantId: String,
-  menuItemId: Option[String],
-  viewDurationMs: Option[Long]
+    eventId: String,
+    eventType: MenuInteractionEventType,
+    eventTs: Instant,
+    sessionId: String,
+    customerId: String,
+    restaurantId: String,
+    menuItemId: Option[String],
+    viewDurationMs: Option[Long]
 )

@@ -14,7 +14,8 @@ import org.hungrycapybara.ordersimulator.model.CustomerProfileEventType
 import org.hungrycapybara.ordersimulator.model.CustomerProfileEventType.*
 import org.hungrycapybara.ordersimulator.model.Customer
 
-final class CustomerProfileEventGenerator(customerUserbase: CustomerUserbase) extends EventGenerator:
+final class CustomerProfileEventGenerator(customerUserbase: CustomerUserbase)
+    extends EventGenerator:
   type Event = CustomerProfileEvent
 
   override protected val name: String = "customer-profile"
@@ -36,9 +37,8 @@ final class CustomerProfileEventGenerator(customerUserbase: CustomerUserbase) ex
       isActive = true
     )
 
-  /**
-    * A simple method to generate a random customer profile event with the set schema.
-    * Enhancements will be to generate more realistic event data.
+  /** A simple method to generate a random customer profile event with the set schema. Enhancements
+    * will be to generate more realistic event data.
     */
   def randomCustomerProfileEvent(): CustomerProfileEvent =
     val eventId = UUID.randomUUID().toString
@@ -46,17 +46,27 @@ final class CustomerProfileEventGenerator(customerUserbase: CustomerUserbase) ex
     val (eventType, customer) =
       randomWeightedEventType match
         case CustomerCreated =>
-          CustomerCreated -> customerUserbase.create(SeedData.randomCustomer().copy(isActive = true))
+          CustomerCreated -> customerUserbase.create(
+            SeedData.randomCustomer().copy(isActive = true)
+          )
         case CustomerUpdated =>
           customerUserbase
             .updateRandomActive(randomCustomerUpdate)
             .map(CustomerUpdated -> _)
-            .getOrElse(CustomerCreated -> customerUserbase.create(SeedData.randomCustomer().copy(isActive = true)))
+            .getOrElse(
+              CustomerCreated -> customerUserbase.create(
+                SeedData.randomCustomer().copy(isActive = true)
+              )
+            )
         case CustomerDeleted =>
           customerUserbase
             .deleteRandomActive()
             .map(CustomerDeleted -> _)
-            .getOrElse(CustomerCreated -> customerUserbase.create(SeedData.randomCustomer().copy(isActive = true)))
+            .getOrElse(
+              CustomerCreated -> customerUserbase.create(
+                SeedData.randomCustomer().copy(isActive = true)
+              )
+            )
 
     CustomerProfileEvent(
       eventId = eventId,

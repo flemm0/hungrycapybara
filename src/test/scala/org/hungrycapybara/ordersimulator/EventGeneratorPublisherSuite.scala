@@ -34,7 +34,8 @@ class EventGeneratorPublisherSuite extends munit.FunSuite:
     assert(publisher.calls.head._2.startsWith("probe-"))
   }
 
-  private final case class RecordingPublisher(var calls: List[(String, String, Any)] = Nil) extends EventPublisher:
+  private final case class RecordingPublisher(var calls: List[(String, String, Any)] = Nil)
+      extends EventPublisher:
     override def publish[A](streamName: String, key: String, event: A): IO[Unit] =
       IO {
         calls = calls :+ (streamName, key, event)

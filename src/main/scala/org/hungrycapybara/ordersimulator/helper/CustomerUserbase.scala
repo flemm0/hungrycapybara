@@ -29,8 +29,7 @@ final class CustomerUserbase private (
     if customer.isActive then
       activePositions += activeIndexes.size
       activeIndexes += index
-    else
-      activePositions += -1
+    else activePositions += -1
 
     customer
   }
@@ -40,8 +39,7 @@ final class CustomerUserbase private (
       val updated = update(customers(customerIndex))
       customers(customerIndex) = updated
 
-      if !updated.isActive then
-        deactivate(customerIndex)
+      if !updated.isActive then deactivate(customerIndex)
 
       updated
     }
@@ -113,5 +111,4 @@ object CustomerUserbase:
     if customer.isActive then
       activePositions += activeIndexes.size
       activeIndexes += index
-    else
-      activePositions += -1
+    else activePositions += -1

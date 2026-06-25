@@ -28,12 +28,14 @@ object ConfigLoader:
       kafkaBootstrapServers: Option[String] = None,
       kafkaClientId: Option[String] = None,
       kafkaTopicPrefix: Option[String] = None,
-      initialCustomerCount: Option[Int] = None
+      initialCustomerCount: Option[Int] = None,
+      initialRestaurantCount: Option[Int] = None
   ):
     def toPartialConfig: PartialAppConfig =
       PartialAppConfig(
         environment = environment,
         initialCustomerCount = initialCustomerCount,
+        initialRestaurantCount = initialRestaurantCount,
         kafka = PartialKafkaConfig.fromOptions(
           bootstrapServers = kafkaBootstrapServers,
           clientId = kafkaClientId,
@@ -44,12 +46,14 @@ object ConfigLoader:
   private final case class PartialAppConfig(
       environment: Option[String] = None,
       initialCustomerCount: Option[Int] = None,
+      initialRestaurantCount: Option[Int] = None,
       kafka: Option[PartialKafkaConfig] = None
   ):
     def merge(overrides: PartialAppConfig): PartialAppConfig =
       PartialAppConfig(
         environment = overrides.environment.orElse(environment),
         initialCustomerCount = overrides.initialCustomerCount.orElse(initialCustomerCount),
+        initialRestaurantCount = overrides.initialRestaurantCount.orElse(initialRestaurantCount),
         kafka = (kafka, overrides.kafka) match
           case (Some(base), Some(next)) => Some(base.merge(next))
           case (None, Some(next))       => Some(next)
@@ -64,7 +68,8 @@ object ConfigLoader:
       yield AppConfig(
         environment = parsedEnvironment,
         kafka = parsedKafka,
-        initialCustomerCount = initialCustomerCount.getOrElse(AppConfig.DefaultInitialCustomerCount)
+        initialCustomerCount = initialCustomerCount.getOrElse(AppConfig.DefaultInitialCustomerCount),
+        initialRestaurantCount = initialRestaurantCount.getOrElse(AppConfig.DefaultInitialRestaurantCount)
       )
 
   private object PartialAppConfig:
@@ -132,7 +137,7 @@ object ConfigLoader:
               Left(error)
             case Right((value, rest)) =>
               updateCliConfig(parsed, name, value) match
-                case Left(error)  => Left(error)
+                case Left(error) => Left(error)
                 case Right(next) => loop(rest, next)
         case unexpected :: _ =>
           Left(s"Unexpected argument: $unexpected")
@@ -144,7 +149,11 @@ object ConfigLoader:
       case name :: value :: Nil => (name, Some(value))
       case _                    => (option, None)
 
-  private def updateCliConfig(config: CliConfig, name: String, value: String): Either[String, CliConfig] =
+  private def updateCliConfig(
+      config: CliConfig,
+      name: String,
+      value: String
+  ): Either[String, CliConfig] =
     nonEmptyValue(name, value).flatMap { nonEmpty =>
       name match
         case "--config" =>
@@ -160,6 +169,10 @@ object ConfigLoader:
         case "--initial-customer-count" =>
           parseNonNegativeInt("--initial-customer-count", nonEmpty).map { count =>
             config.copy(initialCustomerCount = Some(count))
+          }
+        case "--initial-restaurant-count" =>
+          parseNonNegativeInt("--initial-restaurant-count", nonEmpty).map { count =>
+            config.copy(initialRestaurantCount = Some(count))
           }
         case unknown =>
           Left(s"Unknown argument: $unknown")
@@ -196,8 +209,14 @@ object ConfigLoader:
       root <- asMap(value, "config")
       environment <- optionalString(root, "environment", "environment")
       initialCustomerCount <- optionalInt(root, "initialCustomerCount", "initialCustomerCount")
+      initialRestaurantCount <- optionalInt(root, "initialRestaurantCount", "initialRestaurantCount")
       kafka <- optionalMap(root, "kafka", "kafka").flatMap(_.traverse(parseKafkaConfig))
-    yield PartialAppConfig(environment = environment, initialCustomerCount = initialCustomerCount, kafka = kafka)
+    yield PartialAppConfig(
+      environment = environment,
+      initialCustomerCount = initialCustomerCount,
+      initialRestaurantCount = initialRestaurantCount,
+      kafka = kafka
+    )
 
   private def parseKafkaConfig(value: Map[String, Any]): Either[String, PartialKafkaConfig] =
     for
@@ -246,11 +265,14 @@ object ConfigLoader:
         Right(None)
       case Some(value: java.lang.Number) =>
         val longValue = value.longValue()
-        Either.cond(
-          value.doubleValue() == longValue.toDouble,
-          longValue,
-          s"$path must be an integer"
-        ).flatMap(nonNegativeInt(path, _)).map(Some(_))
+        Either
+          .cond(
+            value.doubleValue() == longValue.toDouble,
+            longValue,
+            s"$path must be an integer"
+          )
+          .flatMap(nonNegativeInt(path, _))
+          .map(Some(_))
       case Some(value) =>
         Left(s"$path must be an integer, but found ${value.getClass.getSimpleName}")
 
@@ -274,8 +296,8 @@ object ConfigLoader:
         Left(s"$path must be a YAML object, but found ${other.getClass.getSimpleName}")
 
   private def validate(config: AppConfig): Either[String, AppConfig] =
-    if config.initialCustomerCount < 0 then
-      Left("initialCustomerCount must be non-negative")
+    if config.initialCustomerCount < 0 then Left("initialCustomerCount must be non-negative")
+    else if config.initialRestaurantCount < 0 then Left("initialRestaurantCount must be non-negative")
     else
       config.environment match
         case ExecutionEnvironment.Local =>

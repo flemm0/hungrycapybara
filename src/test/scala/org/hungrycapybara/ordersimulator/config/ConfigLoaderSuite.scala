@@ -12,6 +12,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
     assertEquals(config.environment, ExecutionEnvironment.Local)
     assertEquals(config.kafka, None)
     assertEquals(config.initialCustomerCount, AppConfig.DefaultInitialCustomerCount)
+    assertEquals(config.initialRestaurantCount, AppConfig.DefaultInitialRestaurantCount)
   }
 
   test("loads Kafka config from YAML") {
@@ -20,6 +21,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
       path,
       """environment: staging
         |initialCustomerCount: 250
+        |initialRestaurantCount: 50
         |
         |kafka:
         |  bootstrapServers: localhost:9092
@@ -42,6 +44,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
       )
     )
     assertEquals(config.initialCustomerCount, 250)
+    assertEquals(config.initialRestaurantCount, 50)
   }
 
   test("CLI args override YAML values") {
@@ -50,6 +53,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
       path,
       """environment: staging
         |initialCustomerCount: 250
+        |initialRestaurantCount: 50
         |
         |kafka:
         |  bootstrapServers: localhost:9092
@@ -68,7 +72,9 @@ class ConfigLoaderSuite extends munit.FunSuite:
           "--kafka-client-id",
           "cli-client",
           "--initial-customer-count",
-          "500"
+          "500",
+          "--initial-restaurant-count",
+          "75"
         )
       )
       .unsafeRunSync()
@@ -77,6 +83,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
     assertEquals(config.kafka.map(_.clientId), Some("cli-client"))
     assertEquals(config.kafka.map(_.topicPrefix), Some("yaml-topic"))
     assertEquals(config.initialCustomerCount, 500)
+    assertEquals(config.initialRestaurantCount, 75)
   }
 
   test("requires Kafka config outside local environment") {
@@ -93,4 +100,12 @@ class ConfigLoaderSuite extends munit.FunSuite:
     }
 
     assertEquals(error.getMessage, "--initial-customer-count must be between 0 and 2147483647")
+  }
+
+  test("rejects negative initial restaurant count") {
+    val error = intercept[IllegalArgumentException] {
+      ConfigLoader.load(List("--initial-restaurant-count", "-1")).unsafeRunSync()
+    }
+
+    assertEquals(error.getMessage, "--initial-restaurant-count must be between 0 and 2147483647")
   }

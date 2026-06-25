@@ -1,7 +1,7 @@
 import sbt.*
 
 object Dependencies {
-  
+
   lazy val scala3Version = "3.8.3"
   lazy val slickVersion = "3.6.1"
   lazy val catsEffectVersion = "3.7.0"

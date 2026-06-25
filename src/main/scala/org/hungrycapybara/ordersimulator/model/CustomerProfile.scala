@@ -11,18 +11,18 @@ enum CustomerLoyaltyTier:
   case Bronze, Silver, Gold, Platinum
 
 case class Customer(
-  customerId: String,
-  signupDate: Instant,
-  homeCity: String,
-  favoriteCuisines: List[String],
-  loyaltyTier: CustomerLoyaltyTier,
-  averageOrderValue: Double,
-  isActive: Boolean
+    customerId: String,
+    signupDate: Instant,
+    homeCity: String,
+    favoriteCuisines: List[String],
+    loyaltyTier: CustomerLoyaltyTier,
+    averageOrderValue: Double,
+    isActive: Boolean
 )
 
 case class CustomerProfileEvent(
-  eventId: String,
-  eventType: CustomerProfileEventType,
-  eventTs: Instant,
-  customer: Customer
+    eventId: String,
+    eventType: CustomerProfileEventType,
+    eventTs: Instant,
+    customer: Customer
 )

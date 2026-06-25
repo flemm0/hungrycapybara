@@ -34,7 +34,8 @@ object CartEventGenerator extends EventGenerator:
     CartItem(
       itemId = UUID.randomUUID().toString,
       name = itemNames(Random.nextInt(itemNames.size)),
-      price = BigDecimal(Random.between(4.0, 35.0)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble,
+      price =
+        BigDecimal(Random.between(4.0, 35.0)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble,
       quantity = Random.between(1, 5)
     )
 

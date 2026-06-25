@@ -13,7 +13,7 @@ object CustomerSessionEventGenerator extends EventGenerator:
   override protected val name: String = "customer-session"
   override protected def eventInterval: IO[FiniteDuration] =
     IO.delay(Random.between(5, 15).seconds)
-  
+
   def randomCustomerSessionEvent(): CustomerSessionEvent =
     val eventId = java.util.UUID.randomUUID().toString
     val eventType = Random.nextInt(2) match
@@ -24,7 +24,7 @@ object CustomerSessionEventGenerator extends EventGenerator:
     val sessionId = java.util.UUID.randomUUID().toString
     val deviceType = if Random.nextBoolean() then "mobile" else "desktop"
     val appVersion = s"1.${Random.nextInt(10)}.${Random.nextInt(100)}"
-    val entryPoint = if Random.nextBoolean() then "homepage" else "push_notification" 
+    val entryPoint = if Random.nextBoolean() then "homepage" else "push_notification"
 
     CustomerSessionEvent(
       eventId = eventId,

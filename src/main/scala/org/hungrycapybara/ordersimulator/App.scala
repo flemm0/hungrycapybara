@@ -16,13 +16,17 @@ import org.hungrycapybara.ordersimulator.generators.{
   OrderEventGenerator
 }
 import org.hungrycapybara.ordersimulator.helper.CustomerUserbase
+import org.hungrycapybara.ordersimulator.helper.RestaurantDatabase
 import org.hungrycapybara.ordersimulator.model.ExecutionEnvironment
 import org.hungrycapybara.ordersimulator.publisher.{ConsoleEventPublisher, KafkaEventPublisher}
 
 object App extends IOApp:
-  private def eventGenerators(customerUserbase: CustomerUserbase): List[EventGenerator] = List(
+  private def eventGenerators(
+      customerUserbase: CustomerUserbase,
+      restaurantDatabase: RestaurantDatabase
+  ): List[EventGenerator] = List(
     CustomerProfileEventGenerator(customerUserbase),
-    RestaurantCatalogEventGenerator,
+    RestaurantCatalogEventGenerator(restaurantDatabase),
     CustomerSessionEventGenerator,
     RestaurantBrowseEventGenerator,
     MenuInteractionEventGenerator,
@@ -56,12 +60,17 @@ object App extends IOApp:
     //     IO.println("Starting event generation...") *>
     //     eventGenerators.parTraverse_(_.run(executionEnv, database))
     // }
-    ConfigLoader.load(args).flatMap { config =>
-      for
-        publisher <- selectPublisher(config)
-        _ <- IO.println(s"Seeding ${config.initialCustomerCount} existing customers...")
-        customerUserbase <- IO.blocking(CustomerUserbase.seed(config.initialCustomerCount))
-        _ <- IO.println(s"Starting event generation in ${config.environment}...")
-        _ <- eventGenerators(customerUserbase).parTraverse_(_.run(config.environment, publisher))
-      yield ()
-    }.as(ExitCode.Success)
+    ConfigLoader
+      .load(args)
+      .flatMap { config =>
+        for
+          publisher <- selectPublisher(config)
+          _ <- IO.println(s"Seeding ${config.initialCustomerCount} existing customers...")
+          customerUserbase <- IO.blocking(CustomerUserbase.seed(config.initialCustomerCount))
+          _ <- IO.println(s"Seeding ${config.initialRestaurantCount} existing restaurants...")
+          restaurantDatabase <- IO.blocking(RestaurantDatabase.seed(config.initialRestaurantCount))
+          _ <- IO.println(s"Starting event generation in ${config.environment}...")
+          _ <- eventGenerators(customerUserbase, restaurantDatabase).parTraverse_(_.run(config.environment, publisher))
+        yield ()
+      }
+      .as(ExitCode.Success)

@@ -6,12 +6,12 @@ enum CustomerSessionEventType:
   case SessionStarted, SessionEnded
 
 case class CustomerSessionEvent(
-  eventId: String,
-  eventType: CustomerSessionEventType,
-  eventTs: Instant,
-  sessionId: String,
-  customerId: String,
-  deviceType: String,
-  appVersion: String,
-  entryPoint: String,
+    eventId: String,
+    eventType: CustomerSessionEventType,
+    eventTs: Instant,
+    sessionId: String,
+    customerId: String,
+    deviceType: String,
+    appVersion: String,
+    entryPoint: String
 )

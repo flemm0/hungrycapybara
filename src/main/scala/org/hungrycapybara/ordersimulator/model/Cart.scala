@@ -11,18 +11,18 @@ enum CartEventType:
   case CheckoutStarted
 
 case class CartItem(
-  itemId: String,
-  name: String,
-  price: Double,
-  quantity: Int
+    itemId: String,
+    name: String,
+    price: Double,
+    quantity: Int
 )
 
 case class CartEvent(
-  eventId: String,
-  eventType: CartEventType,
-  eventTs: Instant,
-  sessionId: String,
-  customerId: String,
-  restaurantId: String,
-  cartItems: Option[List[CartItem]]
+    eventId: String,
+    eventType: CartEventType,
+    eventTs: Instant,
+    sessionId: String,
+    customerId: String,
+    restaurantId: String,
+    cartItems: Option[List[CartItem]]
 )

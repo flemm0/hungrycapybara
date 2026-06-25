@@ -17,25 +17,41 @@ object SeedData:
     val customerId = UUID.randomUUID().toString
     val signupDate = Instant.now().minusSeconds(Random.nextInt(365 * 24 * 3600))
     val homeCity = faker.address().city()
-    val favoriteCuisines = LazyList.continually(faker.cuisine().name()).distinct.take(Random.nextInt(3) + 1).toList
-    val loyaltyTier = Random.shuffle(
-      List(
-        CustomerLoyaltyTier.Bronze,
-        CustomerLoyaltyTier.Silver,
-        CustomerLoyaltyTier.Gold,
-        CustomerLoyaltyTier.Platinum
+    val favoriteCuisines =
+      LazyList.continually(faker.cuisine().name()).distinct.take(Random.nextInt(3) + 1).toList
+    val loyaltyTier = Random
+      .shuffle(
+        List(
+          CustomerLoyaltyTier.Bronze,
+          CustomerLoyaltyTier.Silver,
+          CustomerLoyaltyTier.Gold,
+          CustomerLoyaltyTier.Platinum
+        )
       )
-    ).head
+      .head
     val averageOrderValue = Random.nextDouble() * 100
 
-    Customer(customerId, signupDate, homeCity, favoriteCuisines, loyaltyTier, averageOrderValue, isActive = true)
+    Customer(
+      customerId,
+      signupDate,
+      homeCity,
+      favoriteCuisines,
+      loyaltyTier,
+      averageOrderValue,
+      isActive = true
+    )
 
   def randomRestaurant(): Restaurant =
     val restaurantId = UUID.randomUUID().toString
     val name = s"${faker.company().name()} Kitchen"
-    val cuisineTypes = LazyList.continually(faker.cuisine().name()).distinct.take(Random.nextInt(3) + 1).toList
-    val rating = BigDecimal(3.0 + Random.nextDouble() * 2.0).setScale(1, BigDecimal.RoundingMode.HALF_UP).toDouble
-    val priceRange = Random.shuffle(List(PriceRange.Low, PriceRange.Medium, PriceRange.High, PriceRange.Premium)).head
+    val cuisineTypes =
+      LazyList.continually(faker.cuisine().name()).distinct.take(Random.nextInt(3) + 1).toList
+    val rating = BigDecimal(3.0 + Random.nextDouble() * 2.0)
+      .setScale(1, BigDecimal.RoundingMode.HALF_UP)
+      .toDouble
+    val priceRange = Random
+      .shuffle(List(PriceRange.Low, PriceRange.Medium, PriceRange.High, PriceRange.Premium))
+      .head
 
     Restaurant(restaurantId, name, cuisineTypes, rating, priceRange)
 

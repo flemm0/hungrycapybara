@@ -9,13 +9,13 @@ enum RestaurantBrowseEventType:
   case CuisineFilterApplied
 
 case class RestaurantBrowseEvent(
-  eventId: String,
-  eventType: RestaurantBrowseEventType,
-  eventTs: Instant,
-  sessionId: String,
-  customerId: String,
-  restaurantId: Option[String],
-  searchQuery: Option[String],
-  feedRank: Int,
-  deliveryEtaMinutes: Int
+    eventId: String,
+    eventType: RestaurantBrowseEventType,
+    eventTs: Instant,
+    sessionId: String,
+    customerId: String,
+    restaurantId: Option[String],
+    searchQuery: Option[String],
+    feedRank: Int,
+    deliveryEtaMinutes: Int
 )

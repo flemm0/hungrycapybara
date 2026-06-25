@@ -24,7 +24,7 @@ lazy val root = project
     assembly / mainClass := Some("org.hungrycapybara.ordersimulator.App"),
     assembly / assemblyMergeStrategy := {
       case PathList("META-INF", "versions", _, "module-info.class") => MergeStrategy.discard
-      case "module-info.class" => MergeStrategy.discard
+      case "module-info.class"                                      => MergeStrategy.discard
       case x => (assembly / assemblyMergeStrategy).value(x)
     }
   )

@@ -24,8 +24,7 @@ trait EventGenerator:
   protected def streamName: String = name
 
   protected def eventKey(event: Event): String =
-    List("eventId", "orderId", "cartId", "sessionId", "customerId", "restaurantId")
-      .iterator
+    List("eventId", "orderId", "cartId", "sessionId", "customerId", "restaurantId").iterator
       .flatMap(fieldName => extractFieldValue(event, fieldName).iterator)
       .take(1)
       .toList

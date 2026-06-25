@@ -38,7 +38,10 @@ object PromotionEventGenerator extends EventGenerator:
       offerType match
         case "percentage_discount" => Random.between(5, 31).toDouble
         case "free_delivery"       => 0.0
-        case _                     => BigDecimal(Random.between(2.0, 20.0)).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
+        case _                     =>
+          BigDecimal(Random.between(2.0, 20.0))
+            .setScale(2, BigDecimal.RoundingMode.HALF_UP)
+            .toDouble
 
     Offer(
       offerId = UUID.randomUUID().toString,

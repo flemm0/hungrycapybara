@@ -6,7 +6,8 @@ import java.time.Instant
 
 class CustomerUserbaseSuite extends munit.FunSuite:
   test("tracks active customers when creating and deleting") {
-    val userbase = CustomerUserbase.from(List(customer("customer-1"), customer("customer-2", isActive = false)))
+    val userbase =
+      CustomerUserbase.from(List(customer("customer-1"), customer("customer-2", isActive = false)))
 
     assertEquals(userbase.size, 2)
     assertEquals(userbase.activeCount, 1)

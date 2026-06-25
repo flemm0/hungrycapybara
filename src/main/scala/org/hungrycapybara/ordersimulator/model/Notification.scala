@@ -11,10 +11,10 @@ enum NotificationEventType:
   case SmsOpened
 
 case class NotificationEvent(
-  eventId: String,
-  eventType: NotificationEventType,
-  eventTs: Instant,
-  customerId: String,
-  campaignId: String,
-  messageType: String
+    eventId: String,
+    eventType: NotificationEventType,
+    eventTs: Instant,
+    customerId: String,
+    campaignId: String,
+    messageType: String
 )

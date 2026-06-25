@@ -33,7 +33,9 @@ private class Customers(tag: Tag) extends Table[Customer](tag, "customers"):
   def averageOrderValue = column[Double]("average_order_value")
   def isActive = column[Boolean]("is_active")
 
-  def * = (customerId, signupDate, homeCity, favoriteCuisines, loyaltyTier, averageOrderValue, isActive).mapTo[Customer]
+  def * =
+    (customerId, signupDate, homeCity, favoriteCuisines, loyaltyTier, averageOrderValue, isActive)
+      .mapTo[Customer]
 
 private class Restaurants(tag: Tag) extends Table[Restaurant](tag, "restaurants"):
   def restaurantId = column[String]("restaurant_id", O.PrimaryKey)
@@ -59,11 +61,13 @@ object LocalDatabase:
       customers: Seq[Customer],
       restaurants: Seq[Restaurant]
   ): IO[Unit] =
-    val setup = DBIO.seq(
-      (customersDb.schema ++ restaurantsDb.schema).create,
-      insertAll(customersDb, customers),
-      insertAll(restaurantsDb, restaurants)
-    ).transactionally
+    val setup = DBIO
+      .seq(
+        (customersDb.schema ++ restaurantsDb.schema).create,
+        insertAll(customersDb, customers),
+        insertAll(restaurantsDb, restaurants)
+      )
+      .transactionally
 
     IO.fromFuture(IO(database.run(setup))).void
 

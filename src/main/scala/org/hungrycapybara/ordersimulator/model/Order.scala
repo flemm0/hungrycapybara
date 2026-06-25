@@ -10,23 +10,23 @@ enum OrderEventType:
   case OrderCompleted
 
 case class Order(
-  orderId: String,
-  customerId: String,
-  restaurantId: String,
-  cartId: String,
-  items: List[CartItem],
-  subtotal: Double,
-  tax: Double,
-  deliveryFee: Double,
-  serviceFee: Double,
-  smallOrderFee: Double,
-  tip: Double,
-  total: Double
+    orderId: String,
+    customerId: String,
+    restaurantId: String,
+    cartId: String,
+    items: List[CartItem],
+    subtotal: Double,
+    tax: Double,
+    deliveryFee: Double,
+    serviceFee: Double,
+    smallOrderFee: Double,
+    tip: Double,
+    total: Double
 )
 
 case class OrderEvent(
-  eventId: String,
-  eventType: OrderEventType,
-  eventTs: Instant,
-  order: Order
+    eventId: String,
+    eventType: OrderEventType,
+    eventTs: Instant,
+    order: Order
 )

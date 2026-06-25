@@ -46,7 +46,11 @@ class ConsoleEventPublisherSuite extends munit.FunSuite:
       ConsoleEventPublisher.publish(
         streamName = "orders",
         key = "evt_special",
-        event = TestSpecials(optionalText = None, nanValue = Double.NaN, infValue = Double.PositiveInfinity)
+        event = TestSpecials(
+          optionalText = None,
+          nanValue = Double.NaN,
+          infValue = Double.PositiveInfinity
+        )
       )
     }
 

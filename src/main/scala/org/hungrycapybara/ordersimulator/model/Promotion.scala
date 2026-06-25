@@ -9,17 +9,17 @@ enum PromotionEventType:
   case OfferExpired
 
 case class Offer(
-  offerId: String,
-  offerType: String,
-  value: Double,
-  trigger: String,
+    offerId: String,
+    offerType: String,
+    value: Double,
+    trigger: String
 )
 
 case class PromotionEvent(
-  eventId: String,
-  eventType: PromotionEventType,
-  eventTs: Instant,
-  sessionId: String,
-  customerId: String,
-  offer: Offer
+    eventId: String,
+    eventType: PromotionEventType,
+    eventTs: Instant,
+    sessionId: String,
+    customerId: String,
+    offer: Offer
 )
