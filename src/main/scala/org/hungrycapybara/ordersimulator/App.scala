@@ -15,12 +15,13 @@ import org.hungrycapybara.ordersimulator.generators.{
   PromotionEventGenerator,
   OrderEventGenerator
 }
+import org.hungrycapybara.ordersimulator.helper.CustomerUserbase
 import org.hungrycapybara.ordersimulator.model.ExecutionEnvironment
 import org.hungrycapybara.ordersimulator.publisher.{ConsoleEventPublisher, KafkaEventPublisher}
 
 object App extends IOApp:
-  private val eventGenerators: List[EventGenerator] = List(
-    CustomerProfileEventGenerator,
+  private def eventGenerators(customerUserbase: CustomerUserbase): List[EventGenerator] = List(
+    CustomerProfileEventGenerator(customerUserbase),
     RestaurantCatalogEventGenerator,
     CustomerSessionEventGenerator,
     RestaurantBrowseEventGenerator,
@@ -56,8 +57,11 @@ object App extends IOApp:
     //     eventGenerators.parTraverse_(_.run(executionEnv, database))
     // }
     ConfigLoader.load(args).flatMap { config =>
-      selectPublisher(config).flatMap { publisher =>
-        IO.println(s"Starting event generation in ${config.environment}...") *>
-          eventGenerators.parTraverse_(_.run(config.environment, publisher))
-      }
+      for
+        publisher <- selectPublisher(config)
+        _ <- IO.println(s"Seeding ${config.initialCustomerCount} existing customers...")
+        customerUserbase <- IO.blocking(CustomerUserbase.seed(config.initialCustomerCount))
+        _ <- IO.println(s"Starting event generation in ${config.environment}...")
+        _ <- eventGenerators(customerUserbase).parTraverse_(_.run(config.environment, publisher))
+      yield ()
     }.as(ExitCode.Success)

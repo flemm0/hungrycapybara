@@ -1,4 +1,5 @@
 environment: staging
+initialCustomerCount: 1000000
 
 kafka:
   bootstrapServers: localhost:9092

@@ -27,11 +27,13 @@ object ConfigLoader:
       environment: Option[String] = None,
       kafkaBootstrapServers: Option[String] = None,
       kafkaClientId: Option[String] = None,
-      kafkaTopicPrefix: Option[String] = None
+      kafkaTopicPrefix: Option[String] = None,
+      initialCustomerCount: Option[Int] = None
   ):
     def toPartialConfig: PartialAppConfig =
       PartialAppConfig(
         environment = environment,
+        initialCustomerCount = initialCustomerCount,
         kafka = PartialKafkaConfig.fromOptions(
           bootstrapServers = kafkaBootstrapServers,
           clientId = kafkaClientId,
@@ -41,11 +43,13 @@ object ConfigLoader:
 
   private final case class PartialAppConfig(
       environment: Option[String] = None,
+      initialCustomerCount: Option[Int] = None,
       kafka: Option[PartialKafkaConfig] = None
   ):
     def merge(overrides: PartialAppConfig): PartialAppConfig =
       PartialAppConfig(
         environment = overrides.environment.orElse(environment),
+        initialCustomerCount = overrides.initialCustomerCount.orElse(initialCustomerCount),
         kafka = (kafka, overrides.kafka) match
           case (Some(base), Some(next)) => Some(base.merge(next))
           case (None, Some(next))       => Some(next)
@@ -59,7 +63,8 @@ object ConfigLoader:
         parsedKafka <- kafka.traverse(_.toKafkaConfig)
       yield AppConfig(
         environment = parsedEnvironment,
-        kafka = parsedKafka
+        kafka = parsedKafka,
+        initialCustomerCount = initialCustomerCount.getOrElse(AppConfig.DefaultInitialCustomerCount)
       )
 
   private object PartialAppConfig:
@@ -152,12 +157,21 @@ object ConfigLoader:
           Right(config.copy(kafkaClientId = Some(nonEmpty)))
         case "--kafka-topic-prefix" =>
           Right(config.copy(kafkaTopicPrefix = Some(nonEmpty)))
+        case "--initial-customer-count" =>
+          parseNonNegativeInt("--initial-customer-count", nonEmpty).map { count =>
+            config.copy(initialCustomerCount = Some(count))
+          }
         case unknown =>
           Left(s"Unknown argument: $unknown")
     }
 
   private def nonEmptyValue(name: String, value: String): Either[String, String] =
     Either.cond(value.nonEmpty, value, s"$name cannot be empty")
+
+  private def parseNonNegativeInt(path: String, value: String): Either[String, Int] =
+    value.toLongOption
+      .toRight(s"$path must be an integer")
+      .flatMap(nonNegativeInt(path, _))
 
   private def loadYamlConfig(path: Path): IO[PartialAppConfig] =
     readFile(path).flatMap { contents =>
@@ -181,8 +195,9 @@ object ConfigLoader:
     for
       root <- asMap(value, "config")
       environment <- optionalString(root, "environment", "environment")
+      initialCustomerCount <- optionalInt(root, "initialCustomerCount", "initialCustomerCount")
       kafka <- optionalMap(root, "kafka", "kafka").flatMap(_.traverse(parseKafkaConfig))
-    yield PartialAppConfig(environment = environment, kafka = kafka)
+    yield PartialAppConfig(environment = environment, initialCustomerCount = initialCustomerCount, kafka = kafka)
 
   private def parseKafkaConfig(value: Map[String, Any]): Either[String, PartialKafkaConfig] =
     for
@@ -221,6 +236,31 @@ object ConfigLoader:
       case Some(value) =>
         Left(s"$path must be a string, but found ${value.getClass.getSimpleName}")
 
+  private def optionalInt(
+      values: Map[String, Any],
+      key: String,
+      path: String
+  ): Either[String, Option[Int]] =
+    values.get(key) match
+      case None | Some(null) =>
+        Right(None)
+      case Some(value: java.lang.Number) =>
+        val longValue = value.longValue()
+        Either.cond(
+          value.doubleValue() == longValue.toDouble,
+          longValue,
+          s"$path must be an integer"
+        ).flatMap(nonNegativeInt(path, _)).map(Some(_))
+      case Some(value) =>
+        Left(s"$path must be an integer, but found ${value.getClass.getSimpleName}")
+
+  private def nonNegativeInt(path: String, value: Long): Either[String, Int] =
+    Either.cond(
+      value >= 0 && value <= Int.MaxValue,
+      value.toInt,
+      s"$path must be between 0 and ${Int.MaxValue}"
+    )
+
   private def asMap(value: Any, path: String): Either[String, Map[String, Any]] =
     value match
       case map: java.util.Map[?, ?] =>
@@ -234,12 +274,15 @@ object ConfigLoader:
         Left(s"$path must be a YAML object, but found ${other.getClass.getSimpleName}")
 
   private def validate(config: AppConfig): Either[String, AppConfig] =
-    config.environment match
-      case ExecutionEnvironment.Local =>
-        Right(config)
-      case ExecutionEnvironment.Staging | ExecutionEnvironment.Production =>
-        config.kafka match
-          case Some(_) =>
-            Right(config)
-          case None =>
-            Left(s"Kafka config is required when environment is ${config.environment}")
+    if config.initialCustomerCount < 0 then
+      Left("initialCustomerCount must be non-negative")
+    else
+      config.environment match
+        case ExecutionEnvironment.Local =>
+          Right(config)
+        case ExecutionEnvironment.Staging | ExecutionEnvironment.Production =>
+          config.kafka match
+            case Some(_) =>
+              Right(config)
+            case None =>
+              Left(s"Kafka config is required when environment is ${config.environment}")

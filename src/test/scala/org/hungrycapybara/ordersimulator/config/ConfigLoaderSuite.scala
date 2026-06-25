@@ -11,6 +11,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
 
     assertEquals(config.environment, ExecutionEnvironment.Local)
     assertEquals(config.kafka, None)
+    assertEquals(config.initialCustomerCount, AppConfig.DefaultInitialCustomerCount)
   }
 
   test("loads Kafka config from YAML") {
@@ -18,6 +19,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
     Files.writeString(
       path,
       """environment: staging
+        |initialCustomerCount: 250
         |
         |kafka:
         |  bootstrapServers: localhost:9092
@@ -39,6 +41,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
         )
       )
     )
+    assertEquals(config.initialCustomerCount, 250)
   }
 
   test("CLI args override YAML values") {
@@ -46,6 +49,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
     Files.writeString(
       path,
       """environment: staging
+        |initialCustomerCount: 250
         |
         |kafka:
         |  bootstrapServers: localhost:9092
@@ -62,7 +66,9 @@ class ConfigLoaderSuite extends munit.FunSuite:
           "--env",
           "production",
           "--kafka-client-id",
-          "cli-client"
+          "cli-client",
+          "--initial-customer-count",
+          "500"
         )
       )
       .unsafeRunSync()
@@ -70,6 +76,7 @@ class ConfigLoaderSuite extends munit.FunSuite:
     assertEquals(config.environment, ExecutionEnvironment.Production)
     assertEquals(config.kafka.map(_.clientId), Some("cli-client"))
     assertEquals(config.kafka.map(_.topicPrefix), Some("yaml-topic"))
+    assertEquals(config.initialCustomerCount, 500)
   }
 
   test("requires Kafka config outside local environment") {
@@ -78,4 +85,12 @@ class ConfigLoaderSuite extends munit.FunSuite:
     }
 
     assertEquals(error.getMessage, "Kafka config is required when environment is Staging")
+  }
+
+  test("rejects negative initial customer count") {
+    val error = intercept[IllegalArgumentException] {
+      ConfigLoader.load(List("--initial-customer-count", "-1")).unsafeRunSync()
+    }
+
+    assertEquals(error.getMessage, "--initial-customer-count must be between 0 and 2147483647")
   }

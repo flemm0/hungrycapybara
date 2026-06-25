@@ -13,6 +13,7 @@ You can provide runtime config with CLI args:
 ```bash
 sbt "run --env local"
 sbt "run --env staging --kafka-bootstrap-servers localhost:9092 --kafka-client-id hungry-capybara-order-simulator --kafka-topic-prefix hungry-capybara"
+sbt "run --env local --initial-customer-count 1000000"
 ```
 
 Or load config from YAML:
@@ -22,6 +23,9 @@ sbt "run --config app.yaml.example"
 ```
 
 CLI args override YAML values when both are provided.
+
+The app seeds 1,000,000 existing customers by default. Set `initialCustomerCount` in YAML or pass
+`--initial-customer-count` to override it.
 
 ### Build A Runnable Fat Jar
 
