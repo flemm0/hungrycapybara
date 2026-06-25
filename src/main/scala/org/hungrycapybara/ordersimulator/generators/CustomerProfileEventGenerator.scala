@@ -9,6 +9,7 @@ import cats.effect.IO
 import org.hungrycapybara.ordersimulator.core.EventGenerator
 import org.hungrycapybara.ordersimulator.helper.SeedData
 import org.hungrycapybara.ordersimulator.model.CustomerProfileEvent
+import org.hungrycapybara.ordersimulator.model.CustomerProfileEventType
 import org.hungrycapybara.ordersimulator.model.CustomerProfileEventType.*
 
 object CustomerProfileEventGenerator extends EventGenerator:
@@ -18,16 +19,19 @@ object CustomerProfileEventGenerator extends EventGenerator:
   override protected def eventInterval: IO[FiniteDuration] =
     IO.delay(Random.between(1, 11).seconds)
 
+  private def randomWeightedEventType: CustomerProfileEventType =
+    Random.nextDouble() match
+      case x if x < 0.12 => CustomerCreated
+      case x if x < 0.98 => CustomerUpdated
+      case _             => CustomerDeleted
+
   /**
     * A simple method to generate a random customer profile event with the set schema.
     * Enhancements will be to generate more realistic event data.
     */
   def randomCustomerProfileEvent(): CustomerProfileEvent =
     val eventId = UUID.randomUUID().toString
-    val eventType = Random.nextInt(3) match
-      case 0 => CustomerCreated
-      case 1 => CustomerUpdated
-      case 2 => CustomerDeleted
+    val eventType = randomWeightedEventType
     val eventTs = Instant.now()
     val customer = SeedData.randomCustomer().copy(isActive = eventType != CustomerDeleted)
 
