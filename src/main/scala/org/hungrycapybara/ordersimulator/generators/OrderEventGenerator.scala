@@ -2,15 +2,21 @@ package org.hungrycapybara.ordersimulator.generators
 
 import cats.effect.IO
 import org.hungrycapybara.ordersimulator.core.EventGenerator
+import org.hungrycapybara.ordersimulator.helper.RestaurantDatabase
 import org.hungrycapybara.ordersimulator.model.{CartItem, Order, OrderEvent}
+import org.hungrycapybara.ordersimulator.model.OrderEventType
 import org.hungrycapybara.ordersimulator.model.OrderEventType.*
 
 import java.time.Instant
 import java.util.UUID
+import scala.collection.mutable
 import scala.concurrent.duration.*
 import scala.util.Random
 
-object OrderEventGenerator extends EventGenerator:
+final class OrderEventGenerator(
+    restaurantDatabase: RestaurantDatabase,
+    sessionInteractionStore: SessionInteractionStore
+) extends EventGenerator:
   type Event = OrderEvent
 
   override protected val name: String = "order"
@@ -33,7 +39,9 @@ object OrderEventGenerator extends EventGenerator:
   private def roundCurrency(value: Double): Double =
     BigDecimal(value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
 
-  def randomOrderItem(): CartItem =
+  private val orderStateBySession: mutable.Map[String, SessionOrderState] = mutable.Map.empty
+
+  private def randomOrderItem(): CartItem =
     CartItem(
       itemId = UUID.randomUUID().toString,
       name = itemNames(Random.nextInt(itemNames.size)),
@@ -41,7 +49,7 @@ object OrderEventGenerator extends EventGenerator:
       quantity = Random.between(1, 5)
     )
 
-  def randomOrder(): Order =
+  private def randomOrder(customerId: String, restaurantId: String): Order =
     val items = List.fill(Random.between(1, 6))(randomOrderItem())
     val subtotal = roundCurrency(items.map(item => item.price * item.quantity).sum)
     val tax = roundCurrency(subtotal * 0.0875)
@@ -53,8 +61,8 @@ object OrderEventGenerator extends EventGenerator:
 
     Order(
       orderId = UUID.randomUUID().toString,
-      customerId = UUID.randomUUID().toString,
-      restaurantId = UUID.randomUUID().toString,
+      customerId = customerId,
+      restaurantId = restaurantId,
       cartId = UUID.randomUUID().toString,
       items = items,
       subtotal = subtotal,
@@ -66,20 +74,98 @@ object OrderEventGenerator extends EventGenerator:
       total = total
     )
 
-  def randomOrderEvent(): OrderEvent =
-    val eventType = Random.nextInt(5) match
-      case 0 => OrderCreated
-      case 1 => PaymentAuthorized
-      case 2 => OrderConfirmed
-      case 3 => OrderCancelled
-      case 4 => OrderCompleted
+  private def nextEventType(current: OrderEventType): OrderEventType =
+    current match
+      case OrderCreated =>
+        if Random.nextDouble() < 0.9 then PaymentAuthorized else OrderCancelled
+      case PaymentAuthorized =>
+        if Random.nextDouble() < 0.92 then OrderConfirmed else OrderCancelled
+      case OrderConfirmed =>
+        OrderCompleted
+      case OrderCancelled | OrderCompleted =>
+        OrderCreated
+
+  private def randomFallbackOrderEvent(): OrderEvent =
+    val customerId = UUID.randomUUID().toString
+    val restaurantId = restaurantDatabase
+      .randomRestaurant()
+      .map(_.restaurantId)
+      .getOrElse(UUID.randomUUID().toString)
 
     OrderEvent(
       eventId = s"evt_${Random.between(1000, 10000)}",
-      eventType = eventType,
+      eventType = OrderCreated,
       eventTs = Instant.now(),
-      order = randomOrder()
+      order = randomOrder(customerId, restaurantId)
     )
+
+  private def randomOrderEvent(): OrderEvent =
+    val now = Instant.now()
+
+    val inProgressSessionIds = orderStateBySession.keys.toVector
+      .filter(sessionId => sessionInteractionStore.snapshot(sessionId).nonEmpty)
+
+    val inProgressSessionId = Option.when(inProgressSessionIds.nonEmpty) {
+      inProgressSessionIds(Random.nextInt(inProgressSessionIds.size))
+    }
+
+    val fromInProgress =
+      if inProgressSessionId.nonEmpty && Random.nextDouble() < 0.75 then inProgressSessionId
+      else None
+
+    fromInProgress
+      .flatMap(sessionId =>
+        orderStateBySession.get(sessionId).map { state =>
+          val eventType = nextEventType(state.lastEventType)
+          val nextState = SessionOrderState(order = state.order, lastEventType = eventType)
+
+          if eventType == OrderCancelled || eventType == OrderCompleted then
+            orderStateBySession.remove(sessionId)
+            sessionInteractionStore.clearCheckout(sessionId)
+            sessionInteractionStore.recordCartAbandoned(sessionId)
+          else orderStateBySession.update(sessionId, nextState)
+
+          OrderEvent(
+            eventId = s"evt_${Random.between(1000, 10000)}",
+            eventType = eventType,
+            eventTs = now,
+            order = state.order
+          )
+        }
+      )
+      .orElse {
+        sessionInteractionStore.randomCheckoutReadySession().map { snapshot =>
+          val restaurantId = snapshot.restaurantId
+            .orElse(restaurantDatabase.randomRestaurant().map(_.restaurantId))
+            .getOrElse(UUID.randomUUID().toString)
+
+          val order = randomOrder(snapshot.customerId, restaurantId)
+          orderStateBySession.update(
+            snapshot.sessionId,
+            SessionOrderState(order = order, lastEventType = OrderCreated)
+          )
+
+          OrderEvent(
+            eventId = s"evt_${Random.between(1000, 10000)}",
+            eventType = OrderCreated,
+            eventTs = now,
+            order = order
+          )
+        }
+      }
+      .getOrElse(randomFallbackOrderEvent())
 
   override protected def generateEvent(using EventGenerator.Context): IO[OrderEvent] =
     IO.delay(randomOrderEvent())
+
+object OrderEventGenerator:
+  def apply(
+      restaurantDatabase: RestaurantDatabase,
+      sessionInteractionStore: SessionInteractionStore
+  ): OrderEventGenerator =
+    new OrderEventGenerator(restaurantDatabase, sessionInteractionStore)
+
+private final case class SessionOrderState(
+    order: Order,
+    lastEventType: OrderEventType
+)

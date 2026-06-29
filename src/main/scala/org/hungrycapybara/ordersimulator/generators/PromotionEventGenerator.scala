@@ -10,7 +10,9 @@ import java.util.UUID
 import scala.concurrent.duration.*
 import scala.util.Random
 
-object PromotionEventGenerator extends EventGenerator:
+final class PromotionEventGenerator(
+    sessionInteractionStore: SessionInteractionStore
+) extends EventGenerator:
   type Event = PromotionEvent
 
   override protected val name: String = "promotion"
@@ -32,7 +34,7 @@ object PromotionEventGenerator extends EventGenerator:
     "email_campaign"
   )
 
-  def randomOffer(): Offer =
+  private def randomOffer(): Offer =
     val offerType = offerTypes(Random.nextInt(offerTypes.size))
     val value =
       offerType match
@@ -50,21 +52,33 @@ object PromotionEventGenerator extends EventGenerator:
       trigger = triggers(Random.nextInt(triggers.size))
     )
 
-  def randomPromotionEvent(): PromotionEvent =
+  private def randomPromotionEvent(): PromotionEvent =
     val eventType = Random.nextInt(4) match
       case 0 => OfferPresented
       case 1 => OfferClicked
       case 2 => OfferApplied
       case 3 => OfferExpired
 
+    val (sessionId, customerId) =
+      sessionInteractionStore
+        .randomActiveSession()
+        .map(session => (session.sessionId, session.customerId))
+        .getOrElse((UUID.randomUUID().toString, UUID.randomUUID().toString))
+
     PromotionEvent(
       eventId = s"evt_${Random.between(1000, 10000)}",
       eventType = eventType,
       eventTs = Instant.now(),
-      sessionId = UUID.randomUUID().toString,
-      customerId = UUID.randomUUID().toString,
+      sessionId = sessionId,
+      customerId = customerId,
       offer = randomOffer()
     )
 
   override protected def generateEvent(using EventGenerator.Context): IO[PromotionEvent] =
     IO.delay(randomPromotionEvent())
+
+object PromotionEventGenerator:
+  def apply(
+      sessionInteractionStore: SessionInteractionStore
+  ): PromotionEventGenerator =
+    new PromotionEventGenerator(sessionInteractionStore)

@@ -8,6 +8,7 @@ import org.hungrycapybara.ordersimulator.core.{EventGenerator, EventPublisher}
 import org.hungrycapybara.ordersimulator.generators.{
   CustomerProfileEventGenerator,
   RestaurantCatalogEventGenerator,
+  SessionInteractionStore,
   CustomerSessionEventGenerator,
   RestaurantBrowseEventGenerator,
   MenuInteractionEventGenerator,
@@ -23,16 +24,17 @@ import org.hungrycapybara.ordersimulator.publisher.{ConsoleEventPublisher, Kafka
 object App extends IOApp:
   private def eventGenerators(
       customerUserbase: CustomerUserbase,
-      restaurantDatabase: RestaurantDatabase
+      restaurantDatabase: RestaurantDatabase,
+      sessionInteractionStore: SessionInteractionStore
   ): List[EventGenerator] = List(
     CustomerProfileEventGenerator(customerUserbase),
     RestaurantCatalogEventGenerator(restaurantDatabase),
-    CustomerSessionEventGenerator,
-    RestaurantBrowseEventGenerator,
-    MenuInteractionEventGenerator,
-    CartEventGenerator,
-    PromotionEventGenerator,
-    OrderEventGenerator
+    CustomerSessionEventGenerator(customerUserbase, sessionInteractionStore),
+    RestaurantBrowseEventGenerator(restaurantDatabase, sessionInteractionStore),
+    MenuInteractionEventGenerator(restaurantDatabase, sessionInteractionStore),
+    CartEventGenerator(restaurantDatabase, sessionInteractionStore),
+    PromotionEventGenerator(sessionInteractionStore),
+    OrderEventGenerator(restaurantDatabase, sessionInteractionStore)
   )
 
   private def selectPublisher(config: AppConfig): IO[EventPublisher] =
@@ -69,8 +71,9 @@ object App extends IOApp:
           customerUserbase <- IO.blocking(CustomerUserbase.seed(config.initialCustomerCount))
           _ <- IO.println(s"Seeding ${config.initialRestaurantCount} existing restaurants...")
           restaurantDatabase <- IO.blocking(RestaurantDatabase.seed(config.initialRestaurantCount))
+          sessionInteractionStore <- IO.pure(SessionInteractionStore.empty)
           _ <- IO.println(s"Starting event generation in ${config.environment}...")
-          _ <- eventGenerators(customerUserbase, restaurantDatabase).parTraverse_(_.run(config.environment, publisher))
+          _ <- eventGenerators(customerUserbase, restaurantDatabase, sessionInteractionStore).parTraverse_(_.run(config.environment, publisher))
         yield ()
       }
       .as(ExitCode.Success)
