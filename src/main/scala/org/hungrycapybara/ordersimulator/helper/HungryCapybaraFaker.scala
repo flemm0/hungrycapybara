@@ -57,6 +57,22 @@ private class SearchQueryProvider(faker: BaseProviders) extends AbstractProvider
   def term(): String =
     resolve(s"$key.terms")
 
+private class SessionMetadataProvider(faker: BaseProviders) extends AbstractProvider[BaseProviders](faker):
+  private val key = "session_metadata"
+  private val dataUrl = Option(getClass.getClassLoader.getResource("session_metadata.yaml"))
+    .getOrElse(throw new IllegalStateException("Could not find session_metadata.yaml on the classpath"))
+
+  faker.addUrl(Locale.ENGLISH, dataUrl)
+
+  def deviceType(): String =
+    resolve(s"$key.device_types")
+
+  def appVersion(): String =
+    resolve(s"$key.app_versions")
+
+  def entryPoint(): String =
+    resolve(s"$key.entry_points")
+
 private class HungryCapybaraFaker extends Faker:
   def cuisine(): CuisineProvider =
     getProvider(classOf[CuisineProvider], (faker: BaseProviders) => new CuisineProvider(faker))
@@ -69,3 +85,6 @@ private class HungryCapybaraFaker extends Faker:
 
   def searchQuery(): SearchQueryProvider =
     getProvider(classOf[SearchQueryProvider], (faker: BaseProviders) => new SearchQueryProvider(faker))
+
+  def sessionMetadata(): SessionMetadataProvider =
+    getProvider(classOf[SessionMetadataProvider], (faker: BaseProviders) => new SessionMetadataProvider(faker))

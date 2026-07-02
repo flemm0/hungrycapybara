@@ -2,6 +2,7 @@ package org.hungrycapybara.ordersimulator.generators
 
 import org.hungrycapybara.ordersimulator.core.EventGenerator
 import org.hungrycapybara.ordersimulator.helper.CustomerUserbase
+import org.hungrycapybara.ordersimulator.helper.SeedData
 import org.hungrycapybara.ordersimulator.model.CustomerSessionEvent
 import org.hungrycapybara.ordersimulator.model.CustomerSessionEventType
 import org.hungrycapybara.ordersimulator.model.CustomerSessionEventType.*
@@ -31,9 +32,9 @@ final class CustomerSessionEventGenerator(
   private def buildEvent(eventType: CustomerSessionEventType, customerId: String, sessionId: String): CustomerSessionEvent =
     val eventId = UUID.randomUUID().toString
     val eventTs = Instant.now()
-    val deviceType = if Random.nextBoolean() then "mobile" else "desktop"
-    val appVersion = s"1.${Random.nextInt(10)}.${Random.nextInt(100)}"
-    val entryPoint = if Random.nextBoolean() then "homepage" else "push_notification"
+    val deviceType = SeedData.randomSessionDeviceType()
+    val appVersion = SeedData.randomSessionAppVersion()
+    val entryPoint = SeedData.randomSessionEntryPoint()
 
     CustomerSessionEvent(
       eventId = eventId,

@@ -30,6 +30,15 @@ object SeedData:
   def randomSearchQuery(): String =
     faker.searchQuery().term()
 
+  def randomSessionDeviceType(): String =
+    faker.sessionMetadata().deviceType()
+
+  def randomSessionAppVersion(): String =
+    faker.sessionMetadata().appVersion()
+
+  def randomSessionEntryPoint(): String =
+    faker.sessionMetadata().entryPoint()
+
   def randomCustomer(): Customer =
     val customerId = UUID.randomUUID().toString
     val signupDate = Instant.now().minusSeconds(Random.nextInt(365 * 24 * 3600))
