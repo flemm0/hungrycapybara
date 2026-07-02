@@ -73,6 +73,30 @@ private class SessionMetadataProvider(faker: BaseProviders) extends AbstractProv
   def entryPoint(): String =
     resolve(s"$key.entry_points")
 
+private class ServiceAreaProvider(faker: BaseProviders) extends AbstractProvider[BaseProviders](faker):
+  private val key = "service_areas"
+  private val dataUrl = Option(getClass.getClassLoader.getResource("service_areas.yaml"))
+    .getOrElse(throw new IllegalStateException("Could not find service_areas.yaml on the classpath"))
+
+  faker.addUrl(Locale.ENGLISH, dataUrl)
+
+  def city(): String =
+    resolve(s"$key.cities")
+
+private class ProfileDistributionProvider(faker: BaseProviders) extends AbstractProvider[BaseProviders](faker):
+  private val customerKey = "customer_profile"
+  private val restaurantKey = "restaurant_profile"
+  private val dataUrl = Option(getClass.getClassLoader.getResource("profile_distributions.yaml"))
+    .getOrElse(throw new IllegalStateException("Could not find profile_distributions.yaml on the classpath"))
+
+  faker.addUrl(Locale.ENGLISH, dataUrl)
+
+  def loyaltyTierWeighted(): String =
+    resolve(s"$customerKey.loyalty_tier_weighted")
+
+  def priceRangeWeighted(): String =
+    resolve(s"$restaurantKey.price_range_weighted")
+
 private class HungryCapybaraFaker extends Faker:
   def cuisine(): CuisineProvider =
     getProvider(classOf[CuisineProvider], (faker: BaseProviders) => new CuisineProvider(faker))
@@ -88,3 +112,9 @@ private class HungryCapybaraFaker extends Faker:
 
   def sessionMetadata(): SessionMetadataProvider =
     getProvider(classOf[SessionMetadataProvider], (faker: BaseProviders) => new SessionMetadataProvider(faker))
+
+  def serviceArea(): ServiceAreaProvider =
+    getProvider(classOf[ServiceAreaProvider], (faker: BaseProviders) => new ServiceAreaProvider(faker))
+
+  def profileDistribution(): ProfileDistributionProvider =
+    getProvider(classOf[ProfileDistributionProvider], (faker: BaseProviders) => new ProfileDistributionProvider(faker))

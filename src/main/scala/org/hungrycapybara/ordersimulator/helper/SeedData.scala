@@ -13,6 +13,22 @@ import scala.util.Random
 object SeedData:
   private val faker = new HungryCapybaraFaker()
 
+  private def parseLoyaltyTier(value: String): CustomerLoyaltyTier =
+    value match
+      case "Bronze"   => CustomerLoyaltyTier.Bronze
+      case "Silver"   => CustomerLoyaltyTier.Silver
+      case "Gold"     => CustomerLoyaltyTier.Gold
+      case "Platinum" => CustomerLoyaltyTier.Platinum
+      case _           => CustomerLoyaltyTier.Bronze
+
+  private def parsePriceRange(value: String): PriceRange =
+    value match
+      case "Low"     => PriceRange.Low
+      case "Medium"  => PriceRange.Medium
+      case "High"    => PriceRange.High
+      case "Premium" => PriceRange.Premium
+      case _          => PriceRange.Medium
+
   def randomCuisine(): String =
     faker.cuisine().name()
 
@@ -39,22 +55,22 @@ object SeedData:
   def randomSessionEntryPoint(): String =
     faker.sessionMetadata().entryPoint()
 
+  def randomServiceAreaCity(): String =
+    faker.serviceArea().city()
+
+  def randomLoyaltyTier(): CustomerLoyaltyTier =
+    parseLoyaltyTier(faker.profileDistribution().loyaltyTierWeighted())
+
+  def randomPriceRange(): PriceRange =
+    parsePriceRange(faker.profileDistribution().priceRangeWeighted())
+
   def randomCustomer(): Customer =
     val customerId = UUID.randomUUID().toString
     val signupDate = Instant.now().minusSeconds(Random.nextInt(365 * 24 * 3600))
-    val homeCity = faker.address().city()
+    val homeCity = randomServiceAreaCity()
     val favoriteCuisines =
       LazyList.continually(faker.cuisine().name()).distinct.take(Random.nextInt(3) + 1).toList
-    val loyaltyTier = Random
-      .shuffle(
-        List(
-          CustomerLoyaltyTier.Bronze,
-          CustomerLoyaltyTier.Silver,
-          CustomerLoyaltyTier.Gold,
-          CustomerLoyaltyTier.Platinum
-        )
-      )
-      .head
+    val loyaltyTier = randomLoyaltyTier()
     val averageOrderValue = Random.nextDouble() * 100
 
     Customer(
@@ -75,9 +91,7 @@ object SeedData:
     val rating = BigDecimal(3.0 + Random.nextDouble() * 2.0)
       .setScale(1, BigDecimal.RoundingMode.HALF_UP)
       .toDouble
-    val priceRange = Random
-      .shuffle(List(PriceRange.Low, PriceRange.Medium, PriceRange.High, PriceRange.Premium))
-      .head
+    val priceRange = randomPriceRange()
 
     Restaurant(restaurantId, name, cuisineTypes, rating, priceRange)
 
