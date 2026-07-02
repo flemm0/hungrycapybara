@@ -21,6 +21,15 @@ object SeedData:
       .map(faker.menuItem().byCuisine)
       .getOrElse(faker.menuItem().byCuisine(randomCuisine()))
 
+  def randomPromotionOfferType(): String =
+    faker.promotion().offerType()
+
+  def randomPromotionTrigger(): String =
+    faker.promotion().trigger()
+
+  def randomSearchQuery(): String =
+    faker.searchQuery().term()
+
   def randomCustomer(): Customer =
     val customerId = UUID.randomUUID().toString
     val signupDate = Instant.now().minusSeconds(Random.nextInt(365 * 24 * 3600))

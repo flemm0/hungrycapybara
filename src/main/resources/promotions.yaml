@@ -1,0 +1,31 @@
+en:
+  faker:
+    promotions:
+      offer_types:
+        - "percentage_discount"
+        - "fixed_discount"
+        - "free_delivery"
+        - "cashback"
+        - "bogo"
+        - "bundle_deal"
+        - "item_level_discount"
+        - "category_discount"
+        - "minimum_spend_discount"
+        - "loyalty_bonus"
+      triggers:
+        - "homepage_banner"
+        - "checkout_prompt"
+        - "restaurant_page"
+        - "push_notification"
+        - "email_campaign"
+        - "sms_campaign"
+        - "cart_abandonment"
+        - "first_order"
+        - "lunch_rush"
+        - "dinner_rush"
+        - "rainy_day"
+        - "weekend_special"
+        - "loyalty_milestone"
+        - "reengagement"
+        - "payment_failure_retry"
+        - "new_restaurant_launch"

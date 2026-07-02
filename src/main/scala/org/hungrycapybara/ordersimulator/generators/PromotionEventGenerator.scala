@@ -2,6 +2,7 @@ package org.hungrycapybara.ordersimulator.generators
 
 import cats.effect.IO
 import org.hungrycapybara.ordersimulator.core.EventGenerator
+import org.hungrycapybara.ordersimulator.helper.SeedData
 import org.hungrycapybara.ordersimulator.model.{Offer, PromotionEvent}
 import org.hungrycapybara.ordersimulator.model.PromotionEventType.*
 
@@ -19,23 +20,8 @@ final class PromotionEventGenerator(
   override protected def eventInterval: IO[FiniteDuration] =
     IO.delay(Random.between(5, 20).seconds)
 
-  private val offerTypes: Vector[String] = Vector(
-    "percentage_discount",
-    "fixed_discount",
-    "free_delivery",
-    "cashback"
-  )
-
-  private val triggers: Vector[String] = Vector(
-    "homepage_banner",
-    "checkout_prompt",
-    "restaurant_page",
-    "push_notification",
-    "email_campaign"
-  )
-
   private def randomOffer(): Offer =
-    val offerType = offerTypes(Random.nextInt(offerTypes.size))
+    val offerType = SeedData.randomPromotionOfferType()
     val value =
       offerType match
         case "percentage_discount" => Random.between(5, 31).toDouble
@@ -49,7 +35,7 @@ final class PromotionEventGenerator(
       offerId = UUID.randomUUID().toString,
       offerType = offerType,
       value = value,
-      trigger = triggers(Random.nextInt(triggers.size))
+      trigger = SeedData.randomPromotionTrigger()
     )
 
   private def randomPromotionEvent(): PromotionEvent =

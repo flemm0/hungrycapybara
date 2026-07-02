@@ -3,6 +3,7 @@ package org.hungrycapybara.ordersimulator.generators
 import cats.effect.IO
 import org.hungrycapybara.ordersimulator.core.EventGenerator
 import org.hungrycapybara.ordersimulator.helper.RestaurantDatabase
+import org.hungrycapybara.ordersimulator.helper.SeedData
 import org.hungrycapybara.ordersimulator.model.RestaurantBrowseEvent
 import org.hungrycapybara.ordersimulator.model.RestaurantBrowseEventType.*
 
@@ -20,19 +21,6 @@ final class RestaurantBrowseEventGenerator(
   override protected val name: String = "restaurant-browse"
   override protected def eventInterval: IO[FiniteDuration] =
     IO.delay(Random.between(2, 8).seconds)
-
-  private val searchQueries: Vector[String] = Vector(
-    "thai noodles",
-    "pizza near me",
-    "sushi",
-    "vegan bowls",
-    "burger",
-    "tacos",
-    "ramen",
-    "indian curry",
-    "breakfast burrito",
-    "bbq"
-  )
 
   private def randomSessionIdentity(): (Option[String], String, String) =
     sessionInteractionStore
@@ -71,7 +59,7 @@ final class RestaurantBrowseEventGenerator(
     val searchQuery =
       eventType match
         case RestaurantImpression | RestaurantClick | SearchPerformed =>
-          Some(searchQueries(Random.nextInt(searchQueries.size)))
+          Some(SeedData.randomSearchQuery())
         case CuisineFilterApplied =>
           None
 
