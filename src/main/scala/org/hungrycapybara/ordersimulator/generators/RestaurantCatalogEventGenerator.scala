@@ -20,9 +20,9 @@ final class RestaurantCatalogEventGenerator(restaurantDatabase: RestaurantDataba
   private def randomRestaurantUpdate(restaurant: Restaurant): Restaurant =
     SeedData.randomRestaurant().copy(restaurantId = restaurant.restaurantId)
 
-  def randomMenuItem(): MenuItem =
+  def randomMenuItem(restaurant: Restaurant): MenuItem =
     val itemId = UUID.randomUUID().toString
-    val name = s"Menu Item ${Random.alphanumeric.take(5).mkString}"
+    val name = SeedData.randomMenuItemName(restaurant.cuisineTypes.headOption)
     val basePrice = Random.between(5.0, 50.0)
     val available = Random.nextBoolean()
     MenuItem(itemId, name, basePrice, available)
@@ -49,7 +49,7 @@ final class RestaurantCatalogEventGenerator(restaurantDatabase: RestaurantDataba
             .getOrElse(restaurantDatabase.create(SeedData.randomRestaurant()))
     val menuItem =
       if eventType == MenuUpdated || eventType == ItemAvailabilityChanged then
-        Some(randomMenuItem())
+        Some(randomMenuItem(restaurant))
       else None
     RestaurantCatalogEvent(
       eventId = eventId,

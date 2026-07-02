@@ -13,6 +13,14 @@ import scala.util.Random
 object SeedData:
   private val faker = new HungryCapybaraFaker()
 
+  def randomCuisine(): String =
+    faker.cuisine().name()
+
+  def randomMenuItemName(cuisine: Option[String] = None): String =
+    cuisine
+      .map(faker.menuItem().byCuisine)
+      .getOrElse(faker.menuItem().byCuisine(randomCuisine()))
+
   def randomCustomer(): Customer =
     val customerId = UUID.randomUUID().toString
     val signupDate = Instant.now().minusSeconds(Random.nextInt(365 * 24 * 3600))

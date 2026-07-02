@@ -3,6 +3,7 @@ package org.hungrycapybara.ordersimulator.generators
 import cats.effect.IO
 import org.hungrycapybara.ordersimulator.core.EventGenerator
 import org.hungrycapybara.ordersimulator.helper.RestaurantDatabase
+import org.hungrycapybara.ordersimulator.helper.SeedData
 import org.hungrycapybara.ordersimulator.model.{CartItem, Order, OrderEvent}
 import org.hungrycapybara.ordersimulator.model.OrderEventType
 import org.hungrycapybara.ordersimulator.model.OrderEventType.*
@@ -23,19 +24,6 @@ final class OrderEventGenerator(
   override protected def eventInterval: IO[FiniteDuration] =
     IO.delay(Random.between(5, 15).seconds)
 
-  private val itemNames: Vector[String] = Vector(
-    "Pad Thai",
-    "Margherita Pizza",
-    "Chicken Tikka Masala",
-    "Veggie Burrito",
-    "Pork Ramen",
-    "Falafel Bowl",
-    "Cheeseburger",
-    "Salmon Sushi Roll",
-    "Caesar Salad",
-    "Birria Tacos"
-  )
-
   private def roundCurrency(value: Double): Double =
     BigDecimal(value).setScale(2, BigDecimal.RoundingMode.HALF_UP).toDouble
 
@@ -44,7 +32,7 @@ final class OrderEventGenerator(
   private def randomOrderItem(): CartItem =
     CartItem(
       itemId = UUID.randomUUID().toString,
-      name = itemNames(Random.nextInt(itemNames.size)),
+      name = SeedData.randomMenuItemName(),
       price = roundCurrency(Random.between(4.0, 35.0)),
       quantity = Random.between(1, 5)
     )
